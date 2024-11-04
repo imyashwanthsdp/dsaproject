@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>College Room Allocation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      margin: auto;
+      position: relative;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    label {
+      font-weight: bold;
+      margin: 10px 0 5px;
+      display: block;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #5cb85c;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #4cae4c;
+    }
+
+    #allocationStatus {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #d9534f;
+    }
+
+    .footer-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .footer-link button {
+      background-color: #5cb85c;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .footer-link button:hover {
+      background-color: #4cae4c;
+    }
+
+    #timer {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 24px;
+      color: red;
+    }
+
+    #availableSeats, #roomCounts {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>VIT HOSTEL ROOM ALLOTMENT</h2>
+    <div id="timer">10:00</div>
+    <form id="allocationForm">
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" required />
+
+      <label for="regNumber">Register Number:</label>
+      <input type="text" id="regNumber" name="regNumber" required />
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" required />
+
+      <label for="branch">Branch:</label>
+      <select id="branch" name="branch" required>
+        <option value="CSE">Computer Science</option>
+        <option value="ECE">Electronics</option>
+        <option value="ME">Mechanical</option>
+        <option value="FD">Fashion</option>
+      </select>
+
+      <label for="cgpa">CGPA:</label>
+      <input type="number" id="cgpa" name="cgpa" min="0" max="10" step="0.01" required />
+
+      <label for="roomSelection">Room Preference:</label>
+      <select id="roomSelection" name="roomSelection" required>
+        <option value="2 Bed AC">2 Bed AC</option>
+        <option value="3 Bed AC">3 Bed AC</option>
+        <option value="3 Bed Non AC">3 Bed Non AC</option>
+      </select>
+
+      <button type="submit">SUBMIT</button>
+    </form>
+    <div id="allocationStatus"></div>
+    <div id="availableSeats">Available Seats: 100</div>
+    <div id="roomCounts">
+      <p>2 Bed AC Available: <span id="count2BedAC">30</span></p>
+      <p>3 Bed AC Available: <span id="count3BedAC">30</span></p>
+      <p>3 Bed Non AC Available: <span id="count3BedNonAC">40</span></p>
+    </div>
+  </div>
+
+  <div class="footer-link">
+    <button onclick="window.location.href='linked.html'">Go to Search Page</button>
+  </div>
+
+  <script>
+    let availableRooms = JSON.parse(localStorage.getItem("availableRooms")) || { "2 Bed AC": 30, "3 Bed AC": 30, "3 Bed Non AC": 40 };
+    let totalSeats = localStorage.getItem("totalSeats") || 100;
+
+    function updateSeatCounts() {
+      document.getElementById("availableSeats").innerText = `Available Seats: ${totalSeats}`;
+      document.getElementById("count2BedAC").innerText = availableRooms["2 Bed AC"];
+      document.getElementById("count3BedAC").innerText = availableRooms["3 Bed AC"];
+      document.getElementById("count3BedNonAC").innerText = availableRooms["3 Bed Non AC"];
+    }
+
+    document.getElementById("allocationForm").addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const name = document.getElementById("name").value;
+      const regNumber = document.getElementById("regNumber").value;
+      const email = document.getElementById("email").value;
+      const branch = document.getElementById("branch").value;
+      const cgpa = parseFloat(document.getElementById("cgpa").value);
+      const roomSelection = document.getElementById("roomSelection").value;
+
+      let roomType = "";
+      if (roomSelection === "2 Bed AC" && availableRooms["2 Bed AC"] > 0) {
+        roomType = "2 Bed AC";
+      } else if (roomSelection === "3 Bed AC" && availableRooms["3 Bed AC"] > 0) {
+        roomType = "3 Bed AC";
+      } else if (roomSelection === "3 Bed Non AC" && availableRooms["3 Bed Non AC"] > 0) {
+        roomType = "3 Bed Non AC";
+      } else {
+        document.getElementById("allocationStatus").innerText = "No rooms available for the selected type.";
+        return;
+      }
+
+      availableRooms[roomType]--;
+      totalSeats--;
+
+      const allocationData = JSON.parse(localStorage.getItem("allocations")) || [];
+      allocationData.push({ name, regNumber, email, branch, cgpa, roomType });
+      localStorage.setItem("allocations", JSON.stringify(allocationData));
+      localStorage.setItem("availableRooms", JSON.stringify(availableRooms));
+      localStorage.setItem("totalSeats", totalSeats);
+
+      sendEmail(name, regNumber, email, roomType);
+
+      document.getElementById("allocationStatus").innerText = "Room allocated successfully!";
+      document.getElementById("allocationForm").reset();
+      updateSeatCounts();
+    });
+
+    function sendEmail(name, regNumber, email, roomType) {
+      const subject = "Room Allocation Confirmation";
+      const body = `Hello ${name},\n\nYour room allocation details are as follows:\n\nRegister Number: ${regNumber}\nRoom Type: ${roomType}\n\nThank you!`;
+      console.log(`Sending email to ${email} with subject "${subject}" and body:\n${body}`);
+    }
+
+    let timerDuration = 600; // 10 minutes in seconds
+    const timerDisplay = document.getElementById("timer");
+
+    const countdown = setInterval(function() {
+      const minutes = Math.floor(timerDuration / 60);
+      const seconds = timerDuration % 60;
+      timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      if (timerDuration <= 0) {
+        clearInterval(countdown);
+        alert("Session expired");
+        window.close();
+      }
+      timerDuration--;
+    }, 1000);
+
+    updateSeatCounts();
+  </script>
+</body>
+</html>
